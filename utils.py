@@ -1,6 +1,7 @@
 import numpy
 import cv2
 import pickle
+import knn
 
 def save_as_img(dataset,labels,out_path,new_shape=(-1,28,28)):
     n_imgs=dataset.shape[0]
