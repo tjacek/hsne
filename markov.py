@@ -1,5 +1,6 @@
 import numpy as np
 import knn,utils
+from sets import Set
 
 class FiniteMarkovChain(object):
     def __init__(self, distributions):	
@@ -12,11 +13,20 @@ class FiniteMarkovChain(object):
         else:
             self.state=start
         for i in range(theta):
-            self.state=self.distributions[self.state]()
+            self.next_state()
         return self.state
     
+    def next_state(self):
+        self.state=self.distributions[self.state]()
+
     def get_states(self):
         return range(len(self.distributions))
+
+    def seek_landmark(self,start,landmarks):
+        self.state=start
+        while(not (self.state in landmarks)):
+            self.next_state()
+        return self.state    
 
 class FiniteDistribution(object):
     def __init__(self,states,probs):
@@ -24,7 +34,7 @@ class FiniteDistribution(object):
         self.probs=probs
 
     def __call__(self):
-        return np.random.choice(self.states, 1, p=self.probs)	
+        return np.random.choice(self.states, 1, p=self.probs)[0]	
 		
 def make_markov_chain(nn_graph):
     def dist_helper(i):
@@ -50,6 +60,24 @@ def find_landmarks(markov_chain,beta=100,theta=50,beta_theshold=1.30):
                 for i,hist_i in enumerate(hist)
                     if(hist_i>treshold)]
     return landmarks
+
+def compute_influence(markov_chain,landmarks,beta=50):
+    states=markov_chain.get_states()
+    n_landmarks=len(landmarks)
+    landmark_dict={ landmark_i:i 
+                    for i,landmark_i in enumerate(landmarks)}
+    landmarks=Set(landmarks)
+    def influence_helper(state_i):
+        print(state_i)
+        influence=np.zeros((n_landmarks,))
+        for j in range(beta):
+            end_state=markov_chain.seek_landmark(state_i,landmarks)
+            landmark_index=landmark_dict[end_state]
+            influence[landmark_index]+=1
+        influence/=float(beta)
+        return influence
+    return np.array([ influence_helper(state_i)  
+                        for state_i in states])
 
 if __name__ == "__main__": 
     make_markov_chain("mnist_graph")
