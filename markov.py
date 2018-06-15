@@ -79,5 +79,16 @@ def compute_influence(markov_chain,landmarks,beta=50):
     return np.array([ influence_helper(state_i)  
                         for state_i in states])
 
+def get_transition_matrix(new_landmark,old_landmarks):
+    l1=len(new_landmark)
+    l2=len(old_landmark)
+    num=sum([I[k][i] * I[k][j] 
+                for k in range(l1)])
+    div=sum([sum([ I[k][i] * I[k][j]  
+                    for k in range(l1) ]) 
+                for l in range(l2)
+            ])
+    return num/div
+
 if __name__ == "__main__": 
     make_markov_chain("mnist_graph")
