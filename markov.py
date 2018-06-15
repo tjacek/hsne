@@ -1,53 +1,53 @@
 import numpy as np
 import knn,utils
 from sets import Set
+import random
 
-class FiniteMarkovChain(object):
-    def __init__(self, distributions):	
-        self.distributions=distributions
-        self.state=None
-
-    def __call__(self,theta,start=None):
-        if(start is None):
-            self.state=np.random.randint(len(self.distributions))
-        else:
-            self.state=start
-        for i in range(theta):
-            self.next_state()
-        return self.state
-    
-    def next_state(self):
-        self.state=self.distributions[self.state]()
+class EffMarkovChain(object):
+    def __init__(self, trans,states):
+        self.trans=trans
+        self.states=states
+        self.n_states=trans.shape[0]
+        self.k=trans.shape[1]
 
     def get_states(self):
-        return range(len(self.distributions))
+        return range(self.n_states)
+
+    def __call__(self,theta,start_state):
+        current_state=start_state #np.random.randint(self.n_states)
+        for i in range(theta):
+            j=self.next_state(current_state)
+            current_state=self.states[current_state][j]
+        return current_state
+
+    def next_state(self,state_i):
+        r=random.random()
+        for j in xrange(self.k):
+            if(r<self.trans[state_i][j]):
+                return j
+        return self.k
 
     def seek_landmark(self,start,landmarks):
-        self.state=start
-        while(not (self.state in landmarks)):
-            self.next_state()
-        return self.state    
-
-class FiniteDistribution(object):
-    def __init__(self,states,probs):
-        self.states=states
-        self.probs=probs
-
-    def __call__(self):
-        return np.random.choice(self.states, 1, p=self.probs)[0]	
-		
-def make_markov_chain(nn_graph):
-    def dist_helper(i):
+        current_state=start
+        while(not (current_state in landmarks)):
+            j=self.next_state(current_state)
+            current_state=self.states[current_state][j]
+        return current_state    
+                  
+def make_eff_markov_chain(nn_graph):
+    trans=[]
+    states=[]
+    for i in range(len(nn_graph)):
         names_i,distances_i=nn_graph[i]
         sigma_i=np.min(distances_i[distances_i!=0]) 
-        dist=np.exp(distances_i/sigma_i)
-        dist/=np.sum(dist)
-        return FiniteDistribution(names_i,dist)
-    dists=[dist_helper(i)
-            for i in range(len(nn_graph))]
-    return FiniteMarkovChain(dists)
+        dist_i=np.exp(distances_i/sigma_i)
+        dist_i/=np.sum(dist_i)
+        dist_i=np.cumsum(dist_i)
+        trans.append(dist_i)
+        states.append(names_i)
+    return EffMarkovChain(np.array(trans),states)
 
-def find_landmarks(markov_chain,beta=100,theta=50,beta_theshold=1.30):
+def find_landmarks(markov_chain,beta=100,theta=50,beta_theshold=1.50):
     states=markov_chain.get_states()
     hist=np.zeros((len(states),))
     for state_i in states:
