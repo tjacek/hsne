@@ -1,3 +1,4 @@
+import numpy as np
 import numpy
 import cv2
 import pickle
@@ -10,6 +11,9 @@ def save_as_img(dataset,labels,out_path,new_shape=(-1,28,28)):
         img_i=dataset[i].reshape(new_shape)
         out_i=out_path+'/'+name_i
         cv2.imwrite(out_i,img_i)
+
+def save_array(arr,out_path):
+    np.savetxt(out_path, arr, fmt='%.4e', delimiter=',', newline='\n')
 
 def save_object(nn,path):
     file_object = open(path,'wb')
