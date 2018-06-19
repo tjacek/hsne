@@ -13,12 +13,14 @@ class EffMarkovChain(object):
     def get_states(self):
         return range(self.n_states)
 
-    def __call__(self,theta,start_state):
-        current_state=start_state #np.random.randint(self.n_states)
-        for i in range(theta):
-            j=self.next_state(current_state)
-            current_state=self.states[current_state][j]
-        return current_state
+    def __call__(self,beta,theta,start_state):
+        result=np.zeros((beta,))
+        for s in xrange(beta):
+            current_state=start_state 
+            for t in xrange(theta):
+                i=self.next_state(current_state)
+                result[s]=self.states[current_state][i]
+        return result
 
     def next_state(self,state_i):
         r=random.random()
@@ -32,7 +34,11 @@ class EffMarkovChain(object):
         while(not (current_state in landmarks)):
             j=self.next_state(current_state)
             current_state=self.states[current_state][j]
-        return current_state    
+        return current_state
+
+    def save(self,trans_file='states.txt',states_file='states.txt'):
+        utils.save_array(self.trans,trans_file) 
+        utils.save_array(self.states,states_file,prec='%i')    
                   
 def make_eff_markov_chain(nn_graph):
     trans=[]
@@ -45,39 +51,38 @@ def make_eff_markov_chain(nn_graph):
         dist_i=np.cumsum(dist_i)
         trans.append(dist_i)
         states.append(names_i)
-    return EffMarkovChain(np.array(trans),states)
+    return EffMarkovChain(np.array(trans),np.array(states))
 
 def find_landmarks(markov_chain,beta=100,theta=50,beta_theshold=1.50):
     states=markov_chain.get_states()
     hist=np.zeros((len(states),))
     for state_i in states:
-        print(state_i)
-        for j in range(beta):
-            end_state=markov_chain(theta,state_i)
-            hist[end_state]+=1
+        if( state_i % 10 ==0):
+            print(state_i)
+        end_states=markov_chain(beta,theta,state_i)
+        for end_state_i in end_states:
+            hist[end_state_i]+=1
     treshold=beta_theshold*beta
     landmarks=[ i 
                 for i,hist_i in enumerate(hist)
                     if(hist_i>treshold)]
     return landmarks
 
-def compute_influence(markov_chain,landmarks,beta=50):
-    states=markov_chain.get_states()
+def compute_influence(markov_chain,landmarks,beta=50):  
+    n_states=len(markov_chain.get_states())
     n_landmarks=len(landmarks)
+    infl_matrix=np.zeros((n_states,n_landmarks),dtype=float)
     landmark_dict={ landmark_i:i 
                     for i,landmark_i in enumerate(landmarks)}
     landmarks=Set(landmarks)
-    def influence_helper(state_i):
+    for state_i in range(n_states):
         print(state_i)
-        influence=np.zeros((n_landmarks,))
         for j in range(beta):
             end_state=markov_chain.seek_landmark(state_i,landmarks)
             landmark_index=landmark_dict[end_state]
-            influence[landmark_index]+=1
-        influence/=float(beta)
-        return influence
-    return np.array([ influence_helper(state_i)  
-                        for state_i in states])
+            infl_matrix[state_i][landmark_index]+=1.0
+    infl_matrix/=float(beta)
+    return infl_matrix
 
 def get_transition_matrix(new_landmark,old_landmarks):
     l1=len(new_landmark)
