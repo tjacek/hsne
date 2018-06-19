@@ -17,6 +17,20 @@ def save_as_img(dataset,labels,out_path,new_shape=(28,28),selected=None):
         if((selected is None) or (i in selected)):
             save_helper(i,img_i)
 
+def read_sparse_matrix(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+    def parse_pair(pair):
+        key,value=pair.split(",")
+        return int(key),float(value)
+    def parse_line(line):
+        pairs=line.split(")(")
+        pairs[0]=pairs[0].replace("(","")
+        pairs[-1]=pairs[-1].replace(")","")
+        return [ parse_pair(pair_i) for pair_i in pairs]
+    sparse_pairs=[parse_line(line_i)  for line_i in lines]     
+    return sparse_pairs
+
 def read_ints(filename):
     with open(filename) as f:
         raw_ints = f.readlines()
