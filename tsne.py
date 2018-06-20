@@ -14,9 +14,17 @@ def select_landmarks(dataset,in_file='landmarks.txt',out_file='landmarks'):
     landmarks=utils.read_ints(in_file)	
     utils.save_as_img(dataset.data,dataset.target,out_path=out_file,new_shape=(28,28),selected=landmarks)
 
-def compute_tsne(influence_file):
-    sparse=utils.read_sparse_matrix(influence_file)
-    print(sparse[0])
+def compute_tsne(landmark_file,influence_file):
+    landmarks=utils.read_ints(landmark_file)
+    sparse_pairs=utils.read_pairs(influence_file)
+    print("pairs loaded")
+    n_landmarks=len(landmarks)
+    n_states=len(sparse_pairs)
+    infl_matrix=utils.to_sparse_matrix(sparse_pairs,n_states,n_landmarks)
+    norm_const=infl_matrix[0].sum()
+    infl_matrix/=norm_const
+    print(norm_const)
+    markov.get_prob_matrix(infl_matrix)
 
 def compute_influence(graph_path,landmark_file):
     nn_graph=knn.read_nn_graph(graph_path)
@@ -28,7 +36,7 @@ def compute_influence(graph_path,landmark_file):
     markov.compute_influence(mc,landmarks,beta=50)
     print("Time %d" % (time.time() - t0))
 
-compute_tsne('influence.txt')
+compute_tsne('landmarks.txt','influence.txt')
 #iteration('mnist_graph')
 #select_landmarks('landmarks.txt')
 #mnist = fetch_mldata('MNIST original')

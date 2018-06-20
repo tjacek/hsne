@@ -53,7 +53,7 @@ def make_eff_markov_chain(nn_graph):
         states.append(names_i)
     return EffMarkovChain(np.array(trans),np.array(states))
 
-def find_landmarks(markov_chain,beta=100,theta=50,beta_theshold=1.50):
+def find_landmarks(markov_chain,beta=100,theta=50,beta_theshold=3.0):
     states=markov_chain.get_states()
     hist=np.zeros((len(states),))
     for state_i in states:
@@ -84,16 +84,15 @@ def compute_influence(markov_chain,landmarks,beta=50):
     infl_matrix/=float(beta)
     return infl_matrix
 
-def get_transition_matrix(new_landmark,old_landmarks):
-    l1=len(new_landmark)
-    l2=len(old_landmark)
-    num=sum([I[k][i] * I[k][j] 
-                for k in range(l1)])
-    div=sum([sum([ I[k][i] * I[k][j]  
-                    for k in range(l1) ]) 
-                for l in range(l2)
-            ])
-    return num/div
+def get_prob_matrix(infl_matrix,out_path="T.txt"):
+    print(type(infl_matrix))
+    print(infl_matrix.shape)
+    n_landmarks=infl_matrix.shape[1]
+#    T=np.zeros((n_landmarks,n_landmarks))
+    sp=infl_matrix.transpose()*infl_matrix
+    T=sp.toarray()
+    utils.save_array(T,out_path)
+    print(sp.shape)
 
 if __name__ == "__main__": 
     make_markov_chain("mnist_graph")
