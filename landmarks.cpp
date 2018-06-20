@@ -15,15 +15,17 @@ std::uniform_real_distribution<> dis(0.0, 1.0);
 
 class MarkovChain{
   public:	
-	MarkovChain( vector<vector<int>> states,vector<vector<double>> trans);
+	MarkovChain( vector<vector<int>> states,vector<vector<double>> trans,bool raw_states);
 //	~MarkovChain();
     vector<vector<int> > states;
     vector<vector<double> > trans;
     int n_states;
     int n_dims;
+    bool raw_states;
     int next_state(int current_state);
     vector<int> find_landmarks(int beta,int theta,double threshold_factor);
     vector<map<int,int>> compute_influence(vector<int> landmarks,int beta);
+    vector<int> get_landmark_indexs(vector<int> landmarks);
 };
 
 void save_landmarks(const char* filename,vector<int> landmarks);
@@ -33,11 +35,12 @@ vector<vector<double> > to_double(vector<vector<string> > raw_strings);
 vector<vector<string> > read_file(const char* filename);
 vector<string> split(const string &s, char delim);
 
-MarkovChain::MarkovChain( vector<vector<int> > states,vector<vector<double>> trans){
+MarkovChain::MarkovChain( vector<vector<int> > states,vector<vector<double>> trans,bool raw_states){
   this->states=states;
   this->trans=trans;
-  this->n_states= states.size();
-  this->n_dims= states[0].size();
+  this->n_states= trans.size();
+  this->n_dims= trans[0].size();
+  this->raw_states=raw_states;
 };
 
 vector<int> MarkovChain::find_landmarks(int beta,int theta,double threshold_factor){
@@ -47,14 +50,18 @@ vector<int> MarkovChain::find_landmarks(int beta,int theta,double threshold_fact
  	}
 
  	for(int state=0;state<this->n_states;state++){
-      if( (state % 500) == 0){
+      if( (state % 100) == 0){
         cout << state << endl;
       }
       for(int i=0;i<beta;i++){
       	int current_state=state;
       	for(int j=0;j<theta;j++){
       	  int raw_state=this->next_state(current_state);
-      	  current_state=this->states[current_state][raw_state];	
+      	  if(this->raw_states){
+            current_state=raw_state;
+          }else{
+            current_state=this->states[current_state][raw_state];
+          }	
  	    }
  	    histogram[current_state]+=1;	
  	  }	
@@ -63,15 +70,22 @@ vector<int> MarkovChain::find_landmarks(int beta,int theta,double threshold_fact
   int landmark_threshold=threshold_factor*beta;     
  	vector<int> landmarks;
   cout << landmark_threshold << " AAAA" << endl;
- 	for(int i=0;i<this->n_states;i++){
+ 	int outliners=0;
+  for(int i=0;i<this->n_states;i++){
       if( histogram[i] > landmark_threshold){
         cout << histogram[i] << endl;
-        landmarks.push_back(i);
+        //if(this->raw_states){
+        //    landmarks.push_back(this->states[0][i] );
+        //}else{
+            landmarks.push_back(i);
+        //}
       }
-      /*if( (i% 70)==0){
-        landmarks.push_back(i);
-      }	*/	
+	    if(histogram[i]==0){
+        outliners++;
+      }
  	}
+  cout << "Number of landmarks " << landmarks.size() << endl;
+  cout << "Number of outliners " << outliners << endl;
  	return landmarks;
  }
 
@@ -93,7 +107,14 @@ vector<map<int,int>> MarkovChain::compute_influence(vector<int> landmarks,int be
       result=landmark_set.find(current_state);  
       while(result==landmark_set.end()){
         int raw_state=this->next_state(current_state);
-        current_state=this->states[current_state][raw_state]; 
+        if(this->raw_states){
+          cout << "raw state" << raw_state << endl;
+          current_state=raw_state; 
+          cout << "current state" << raw_state << endl;
+
+        }else{
+          current_state=this->states[current_state][raw_state]; 
+        }
         result=landmark_set.find(current_state); 
       }
       int landmark_index=landmark_dict[current_state];
@@ -107,6 +128,18 @@ vector<map<int,int>> MarkovChain::compute_influence(vector<int> landmarks,int be
     influence.push_back(histogram);
   }
   return influence;
+}
+
+vector<int> MarkovChain::get_landmark_indexs(vector<int> landmarks){
+  if(!this->raw_states){
+    return landmarks;
+  }
+  vector<int> landmark_indexes;
+  for(int i=0;i<landmarks.size();i++){
+    int index=this->states[0][i];
+    landmark_indexes.push_back(index);
+  }
+  return landmark_indexes;
 }
 
 int MarkovChain::next_state(int current_state){
@@ -207,15 +240,15 @@ vector<string> split(const string &s, char delim) {
 }
 
 int main () {
-  vector<vector<string> > raw_trans=read_file("trans.txt");
-  vector<vector<double> > trans=to_double(raw_trans);
-  vector<vector<string> > raw_states=read_file("states.txt");
-  vector<vector<int> >  states=to_int(raw_states);
-  MarkovChain mc(states,trans);
-  vector<int> landmarks=mc.find_landmarks(100,50,7.5);
+  vector<vector<string>> raw_trans=read_file("mnist/scale2/trans.txt");
+  vector<vector<double>> trans=to_double(raw_trans);
+  vector<vector<string>> raw_states=read_file("mnist/scale2/states.txt");
+  vector<vector<int>>  states=to_int(raw_states);
+  MarkovChain mc(states,trans,true);
+  vector<int> landmarks=mc.find_landmarks(100,50,2);
   cout << "size:"<< landmarks.size() << endl;
-  save_landmarks("landmarks.txt",landmarks);
+  save_landmarks("mnist/scale2/landmarks.txt",mc.get_landmark_indexs(landmarks));
   cout << "landmarks saved" << endl;
   vector<map<int,int>> influence=mc.compute_influence(landmarks,50); 
-  save_influence("influence.txt",influence);
+  save_influence("mnist/scale2/influence.txt",influence);
 }

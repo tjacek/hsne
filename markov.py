@@ -36,7 +36,7 @@ class EffMarkovChain(object):
             current_state=self.states[current_state][j]
         return current_state
 
-    def save(self,trans_file='states.txt',states_file='states.txt'):
+    def save(self,trans_file='trans.txt',states_file='states.txt'):
         utils.save_array(self.trans,trans_file) 
         utils.save_array(self.states,states_file,prec='%i')    
                   
@@ -84,15 +84,23 @@ def compute_influence(markov_chain,landmarks,beta=50):
     infl_matrix/=float(beta)
     return infl_matrix
 
-def get_prob_matrix(infl_matrix,out_path="T.txt"):
+def get_prob_matrix(infl_matrix):
     print(type(infl_matrix))
     print(infl_matrix.shape)
     n_landmarks=infl_matrix.shape[1]
-#    T=np.zeros((n_landmarks,n_landmarks))
     sp=infl_matrix.transpose()*infl_matrix
     T=sp.toarray()
-    utils.save_array(T,out_path)
-    print(sp.shape)
+    return T
 
+def to_cum_matrix(matrix):
+    const=np.sum(matrix,axis=1)
+    const=1.0/const
+    print("T")
+    n_dist=const.shape[0]
+    prob=np.array([const[i]* row_i 
+                    for i,row_i in enumerate(matrix)])
+    prob=np.cumsum(prob,axis=1)
+    return prob
+    
 if __name__ == "__main__": 
     make_markov_chain("mnist_graph")

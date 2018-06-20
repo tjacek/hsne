@@ -3,6 +3,7 @@ import numpy
 import cv2
 import pickle
 from sets import Set 
+from scipy.sparse import dok_matrix
 
 def save_as_img(dataset,labels,out_path,new_shape=(28,28),selected=None):
     if(not selected is None):
@@ -17,24 +18,15 @@ def save_as_img(dataset,labels,out_path,new_shape=(28,28),selected=None):
         if((selected is None) or (i in selected)):
             save_helper(i,img_i)
 
-def read_sparse_matrix(filename):
-    with open(filename) as f:
-        lines = f.readlines()
-    def parse_pair(pair):
-        key,value=pair.split(",")
-        return int(key),float(value)
-    def parse_line(line):
-        pairs=line.split(")(")
-        pairs[0]=pairs[0].replace("(","")
-        pairs[-1]=pairs[-1].replace(")","")
-        return [ parse_pair(pair_i) for pair_i in pairs]
-    sparse_pairs=[parse_line(line_i)  for line_i in lines]     
-    return sparse_pairs
-
 def read_ints(filename):
     with open(filename) as f:
         raw_ints = f.readlines()
     return [ int(raw_i) for raw_i in raw_ints]    
+
+def save_str(txt,out_path):
+    text_file = open(out_path, "w")
+    text_file.write(txt)
+    text_file.close()
 
 def save_array(arr,out_path,prec='%.4e'):
     np.savetxt(out_path, arr, fmt=prec, delimiter=',', newline='\n')
@@ -49,3 +41,24 @@ def read_object(path):
     obj=pickle.load(file_object)  
     file_object.close()
     return obj
+
+def to_sparse_matrix(sparse_pairs,n_states,n_landmarks):
+    infl_matrix=dok_matrix((n_states, n_landmarks), dtype=np.float32)
+    for i,pairs_i in enumerate(sparse_pairs):
+        for j,value_j in pairs_i:
+            infl_matrix[i,j]=value_j
+    return infl_matrix 
+
+def read_pairs(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+    def parse_pair(pair):
+        key,value=pair.split(",")
+        return int(key),float(value)
+    def parse_line(line):
+        pairs=line.split(")(")
+        pairs[0]=pairs[0].replace("(","")
+        pairs[-1]=pairs[-1].replace(")","")
+        return [ parse_pair(pair_i) for pair_i in pairs]
+    sparse_pairs=[parse_line(line_i)  for line_i in lines]
+    return sparse_pairs
