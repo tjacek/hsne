@@ -3,6 +3,8 @@ import time
 import knn,markov
 from knn import NNGraph
 import utils
+from sklearn.manifold import TSNE
+import numpy as np
 
 def make_markov(graph_path):
     nn_graph=knn.read_nn_graph(graph_path)
@@ -14,7 +16,20 @@ def select_landmarks(dataset,in_file='landmarks.txt',out_file='landmarks'):
     landmarks=utils.read_ints(in_file)	
     utils.save_as_img(dataset.data,dataset.target,out_path=out_file,new_shape=(28,28),selected=landmarks)
 
-def compute_tsne(landmark_file,influence_file):
+def compute_tsne(t_file="T.txt"):
+    trans=np.loadtxt(t_file,delimiter=',')
+    print(trans.shape)
+    def norm_helper(row):
+        row/=sum(row)
+        return row
+    trans=np.array([norm_helper(t_i) for t_i in trans])
+    P=trans.T +trans
+    norm_const=2.0 * float(trans.shape[0])
+    P/=norm_const
+    embd=TSNE(n_components=2).fit_transform(P)   
+    print(embd.shape)
+
+def compute_t(landmark_file,influence_file):
     landmarks=utils.read_ints(landmark_file)
     sparse_pairs=utils.read_pairs(influence_file)
     print("pairs loaded")
@@ -36,7 +51,7 @@ def compute_influence(graph_path,landmark_file):
     markov.compute_influence(mc,landmarks,beta=50)
     print("Time %d" % (time.time() - t0))
 
-compute_tsne('landmarks.txt','influence.txt')
+compute_tsne("T.txt")#'landmarks.txt','influence.txt')
 #iteration('mnist_graph')
 #select_landmarks('landmarks.txt')
 #mnist = fetch_mldata('MNIST original')
