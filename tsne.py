@@ -5,6 +5,13 @@ from knn import NNGraph
 import utils
 from sklearn.manifold import TSNE
 import numpy as np
+import plot
+
+def hsne(dataset_name='MNIST original',t_file="T.txt",landmarks_file='landmarks.txt'):
+    mnist = fetch_mldata(dataset_name)
+    embd=compute_tsne(t_file)
+    landmarks=utils.read_ints(landmarks_file)
+    plot.plot_embedding(embd,mnist,landmarks,title="beta_threshold=7.5")
 
 def make_markov(graph_path):
     nn_graph=knn.read_nn_graph(graph_path)
@@ -28,6 +35,7 @@ def compute_tsne(t_file="T.txt"):
     P/=norm_const
     embd=TSNE(n_components=2).fit_transform(P)   
     print(embd.shape)
+    return embd
 
 def compute_t(landmark_file,influence_file):
     landmarks=utils.read_ints(landmark_file)
@@ -51,7 +59,9 @@ def compute_influence(graph_path,landmark_file):
     markov.compute_influence(mc,landmarks,beta=50)
     print("Time %d" % (time.time() - t0))
 
-compute_tsne("T.txt")#'landmarks.txt','influence.txt')
+hsne()
+
+#compute_tsne("T.txt")#'landmarks.txt','influence.txt')
 #iteration('mnist_graph')
 #select_landmarks('landmarks.txt')
 #mnist = fetch_mldata('MNIST original')
