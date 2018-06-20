@@ -7,6 +7,14 @@ from sklearn.manifold import TSNE
 import numpy as np
 import plot
 
+def prepare_hsne(graph_path='mnist/mnist_graph',trans="mnist/trans.txt",states="mnist/states.txt"):
+    nn_graph=knn.read_nn_graph(graph_path)
+    print("nn graph loaded")
+    t0=time.time()
+    mc=markov.make_eff_markov_chain(nn_graph)
+    print("markov chain constructed %d" % (time.time()-t0))
+    mc.save(trans,states)
+
 def hsne(dataset_name='MNIST original',t_file="T.txt",landmarks_file='landmarks.txt'):
     mnist = fetch_mldata(dataset_name)
     embd=compute_tsne(t_file)
@@ -15,7 +23,7 @@ def hsne(dataset_name='MNIST original',t_file="T.txt",landmarks_file='landmarks.
 
 def make_markov(graph_path):
     nn_graph=knn.read_nn_graph(graph_path)
-    mc=markov.make_eff_markov_chain(nn_graph)#make_markov_chain(nn_graph)
+    mc=markov.make_eff_markov_chain(nn_graph)
     print(mc.states)
     mc.save('trans.txt','states.txt')
 
@@ -59,7 +67,7 @@ def compute_influence(graph_path,landmark_file):
     markov.compute_influence(mc,landmarks,beta=50)
     print("Time %d" % (time.time() - t0))
 
-hsne()
+prepare_hsne()
 
 #compute_tsne("T.txt")#'landmarks.txt','influence.txt')
 #iteration('mnist_graph')
