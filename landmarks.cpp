@@ -12,10 +12,9 @@ std::random_device rd;  //Will be used to obtain a seed for the random number en
 std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
 std::uniform_real_distribution<> dis(0.0, 1.0);
 
-
 class MarkovChain{
   public:	
-	MarkovChain( vector<vector<int>> states,vector<vector<double>> trans,bool raw_states);
+	MarkovChain( vector<vector<int>> states,vector<vector<double>> trans);//,bool raw_states);
 //	~MarkovChain();
     vector<vector<int> > states;
     vector<vector<double> > trans;
@@ -35,12 +34,12 @@ vector<vector<double> > to_double(vector<vector<string> > raw_strings);
 vector<vector<string> > read_file(const char* filename);
 vector<string> split(const string &s, char delim);
 
-MarkovChain::MarkovChain( vector<vector<int> > states,vector<vector<double>> trans,bool raw_states){
+MarkovChain::MarkovChain( vector<vector<int> > states,vector<vector<double>> trans){//,bool raw_states){
   this->states=states;
   this->trans=trans;
   this->n_states= trans.size();
   this->n_dims= trans[0].size();
-  this->raw_states=raw_states;
+  this->raw_states= (states.size()==1); //raw_states;
 };
 
 vector<int> MarkovChain::find_landmarks(int beta,int theta,double threshold_factor){
@@ -171,12 +170,6 @@ void save_influence(const char* filename,vector<map<int,int>> influence){
       myfile << "(" << it->first << "," << it->second << ")";
 
     }
-    /*for(int j=0;j<n_landmarks;j++){
-      myfile << influence[i][j];
-      if(j!=(n_landmarks-1)){
-        myfile <<",";
-      }
-    }*/
     myfile <<"\n";
   }
   myfile.close();
@@ -239,16 +232,38 @@ vector<string> split(const string &s, char delim) {
   return elems;
 }
 
+bool is_norm(vector<vector<double>> trans){
+  for(int i=0;i<trans.size()-1;i++){
+    double prob=0;
+    for(int j=0; j<trans[i].size()-1;j++){
+      double current=trans[i][j];
+      double next=trans[i][j+1];
+      prob+= (next - current);
+      if(prob>1.0){
+        return false;
+      }
+    }
+//    cout << prob << endl;
+  }
+  return true; 
+}
+
 int main () {
-  vector<vector<string>> raw_trans=read_file("mnist/scale2/trans.txt");
+  int beta=100;
+  int theta=50;
+  float threshold=1.5;
+//  bool homg_states=false;
+
+  vector<vector<string>> raw_trans=read_file("mnist_d/scale1/trans.txt");
   vector<vector<double>> trans=to_double(raw_trans);
-  vector<vector<string>> raw_states=read_file("mnist/scale2/states.txt");
+  cout <<"trans " << is_norm(trans) <<endl;
+  vector<vector<string>> raw_states=read_file("mnist_d/scale1/states.txt");
   vector<vector<int>>  states=to_int(raw_states);
-  MarkovChain mc(states,trans,true);
-  vector<int> landmarks=mc.find_landmarks(100,50,2);
+  MarkovChain mc(states,trans);//,homg_states);
+  vector<int> landmarks=mc.find_landmarks(beta,theta,threshold);
   cout << "size:"<< landmarks.size() << endl;
-  save_landmarks("mnist/scale2/landmarks.txt",mc.get_landmark_indexs(landmarks));
+  save_landmarks("mnist_d/scale1/landmarks.txt",mc.get_landmark_indexs(landmarks));
   cout << "landmarks saved" << endl;
-  vector<map<int,int>> influence=mc.compute_influence(landmarks,50); 
-  save_influence("mnist/scale2/influence.txt",influence);
+  vector<map<int,int>> influence=mc.compute_influence(landmarks,beta); 
+  save_influence("mnist_d/scale1/influence.txt",influence);
 }
