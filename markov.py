@@ -84,12 +84,11 @@ def compute_influence(markov_chain,landmarks,beta=50):
     infl_matrix/=float(beta)
     return infl_matrix
 
-def get_prob_matrix(infl_matrix):
-    print(type(infl_matrix))
-    print(infl_matrix.shape)
-    n_landmarks=infl_matrix.shape[1]
-    sp=infl_matrix.transpose()*infl_matrix
+def get_prob_matrix(infl_matrix,W):
+    weighted_infl=infl_matrix.multiply(W)
+    sp=weighted_infl.transpose()*infl_matrix
     T=sp.toarray()
+    print(T.shape)
     return T
 
 def to_cum_matrix(matrix):

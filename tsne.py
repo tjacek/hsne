@@ -7,7 +7,7 @@ from sklearn.manifold import TSNE
 import numpy as np
 import plot
 
-def compute_t(landmarks,sparse_pairs):  
+def compute_t(landmarks,sparse_pairs,W):  
     n_landmarks=len(landmarks)
     print("Number of landmarks %d" % n_landmarks)
     t_sparse=time.time()
@@ -18,7 +18,7 @@ def compute_t(landmarks,sparse_pairs):
     infl_matrix/=norm_const
     print("Norm const %d" % norm_const)
     t_comp=time.time()
-    T=markov.get_prob_matrix(infl_matrix)
+    T=markov.get_prob_matrix(infl_matrix,W)
     print("T matrix computed %d" % (time.time() - t_comp))
     print(T.shape)
     def norm_helper(row):
@@ -42,6 +42,16 @@ def create_embedding(trans):
     P/=norm_const
     embd=TSNE(n_components=2).fit_transform(P)   
     return embd
+
+#def get_weights(weights_file=None):
+
+#def next_weights(infl_matrix,W=None):
+#    n_landmarks=infl_matrix.shape[0]
+#    if(W is None):
+#        W=np.zeros((n_landmarks,))
+#    W=W*infl_matrix
+#    print(W.shape)
+#    return W
 
 def select_landmarks(dataset,in_file='landmarks.txt',out_file='landmarks'):
     landmarks=utils.read_ints(in_file)	
