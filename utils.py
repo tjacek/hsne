@@ -4,19 +4,33 @@ import cv2
 import pickle
 from sets import Set 
 from scipy.sparse import dok_matrix
+import sklearn.datasets.base
+from sklearn.datasets import fetch_mldata
 
-def save_as_img(dataset,labels,out_path,new_shape=(28,28),selected=None):
+def downsample_dataset(dataset_name,factor=10):
+    dataset=fetch_mldata(dataset_name)
+    examples=[ example_i
+               for i,example_i in enumerate(dataset.data)
+                 if((i % factor) ==0)]
+    target = [ example_i
+               for i,example_i in enumerate(dataset.target)
+                 if((i % factor) ==0)]
+    return sklearn.datasets.base.Bunch(data=examples, target=target)
+
+def save_as_img(dataset,out_path,new_shape=(28,28),selected=None):
     if(not selected is None):
         selected=Set(selected)
     def save_helper(i,img_i):        
         img_i=np.reshape(img_i,new_shape)
-        cat_i=str(int(labels[i]))
+        cat_i=str(int(dataset.target[i]))
         name_i=out_path+'/'+str(i)+'_'+ cat_i +'.png'
         cv2.imwrite(name_i,img_i)
         print(name_i)
-    for i,img_i in enumerate(dataset):
+    for i,img_i in enumerate(dataset.data):
         if((selected is None) or (i in selected)):
             save_helper(i,img_i)
+
+#def read_as_img
 
 def read_ints(filename):
     with open(filename) as f:
