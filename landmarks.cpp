@@ -136,7 +136,7 @@ vector<int> MarkovChain::get_landmark_indexs(vector<int> landmarks){
   }
   vector<int> landmark_indexes;
   for(int i=0;i<landmarks.size();i++){
-    int index=this->states[0][i];
+    int index=this->states[0][landmarks[i]];
     landmark_indexes.push_back(index);
   }
   return landmark_indexes;
