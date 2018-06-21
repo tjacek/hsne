@@ -1,7 +1,6 @@
 import numpy as np
-import numpy
 import cv2
-import pickle
+import pickle,os,re
 from sets import Set 
 from scipy.sparse import dok_matrix
 import sklearn.datasets.base
@@ -30,8 +29,23 @@ def save_as_img(dataset,out_path,new_shape=(28,28),selected=None):
         if((selected is None) or (i in selected)):
             save_helper(i,img_i)
 
-#def read_as_img
+def read_as_dataset(in_path):
+    def read_helper(filename_i):
+        img_path_i=in_path+'/'+filename_i 
+        img_i=cv2.imread(img_path_i,0)
+        print(img_i.shape)
+        img_i=img_i.flatten()
+        cat_i=int(extract_int(filename_i)[1])
+        return img_i,cat_i
+    imgs=[ read_helper(filename_i)
+            for filename_i in os.listdir(in_path)]
+    data=np.array([ img_i[0] for img_i in imgs])
+    target=np.array([ img_i[1] for img_i in imgs])
+    return sklearn.datasets.base.Bunch(data=data, target=target)
 
+def extract_int(str_i):
+    return re.findall('\d+', str_i )    
+        
 def read_ints(filename):
     with open(filename) as f:
         raw_ints = f.readlines()
