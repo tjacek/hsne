@@ -243,7 +243,7 @@ bool is_norm(vector<vector<double>> trans){
         return false;
       }
     }
-//    cout << prob << endl;
+    //cout << prob << endl;
   }
   return true; 
 }
@@ -253,17 +253,20 @@ int main () {
   int theta=50;
   float threshold=1.5;
 //  bool homg_states=false;
-
-  vector<vector<string>> raw_trans=read_file("mnist_d/scale1/trans.txt");
+  const char* trans_path="mnist_d/scale2/trans.txt";
+  const char* states_path="mnist_d/scale2/states.txt";
+  const char* landmarks_path="mnist_d/scale2/landmarks.txt";
+  const char* influence_path="mnist_d/scale2/influence.txt";
+  vector<vector<string>> raw_trans=read_file(trans_path);
   vector<vector<double>> trans=to_double(raw_trans);
-  cout <<"trans " << is_norm(trans) <<endl;
-  vector<vector<string>> raw_states=read_file("mnist_d/scale1/states.txt");
+  cout <<"TRANS MATRIX CORRECTNESS " << is_norm(trans) <<endl;
+  vector<vector<string>> raw_states=read_file(states_path);
   vector<vector<int>>  states=to_int(raw_states);
   MarkovChain mc(states,trans);//,homg_states);
   vector<int> landmarks=mc.find_landmarks(beta,theta,threshold);
   cout << "size:"<< landmarks.size() << endl;
-  save_landmarks("mnist_d/scale1/landmarks.txt",mc.get_landmark_indexs(landmarks));
+  save_landmarks(landmarks_path,mc.get_landmark_indexs(landmarks));
   cout << "landmarks saved" << endl;
   vector<map<int,int>> influence=mc.compute_influence(landmarks,beta); 
-  save_influence("mnist_d/scale1/influence.txt",influence);
+  save_influence(influence_path,influence);
 }
