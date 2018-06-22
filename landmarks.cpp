@@ -39,7 +39,8 @@ MarkovChain::MarkovChain( vector<vector<int> > states,vector<vector<double>> tra
   this->trans=trans;
   this->n_states= trans.size();
   this->n_dims= trans[0].size();
-  this->raw_states= (states.size()==1); //raw_states;
+  this->raw_states= (states.size()==1);
+  cout << "N_states" << this->n_states << endl;
 };
 
 vector<int> MarkovChain::find_landmarks(int beta,int theta,double threshold_factor){
@@ -54,9 +55,9 @@ vector<int> MarkovChain::find_landmarks(int beta,int theta,double threshold_fact
       }
       for(int i=0;i<beta;i++){
       	int current_state=state;
-      	for(int j=0;j<theta;j++){
+        for(int j=0;j<theta;j++){
       	  int raw_state=this->next_state(current_state);
-      	  if(this->raw_states){
+          if(this->raw_states){
             current_state=raw_state;
           }else{
             current_state=this->states[current_state][raw_state];
@@ -148,7 +149,7 @@ int MarkovChain::next_state(int current_state){
      	return i;
      }
    }
-   return this->n_dims;
+   return (this->n_dims-1);
 }
 
 void save_landmarks(const char* filename,vector<int> landmarks){
@@ -251,20 +252,18 @@ bool is_norm(vector<vector<double>> trans){
 int main () {
   int beta=100;
   int theta=50;
-  float threshold=1.5;
-//  bool homg_states=false;
-  const char* trans_path="mnist_d/scale2/trans.txt";
-  const char* states_path="mnist_d/scale2/states.txt";
-  const char* landmarks_path="mnist_d/scale2/landmarks.txt";
-  const char* influence_path="mnist_d/scale2/influence.txt";
+  float threshold=2.5;
+  const char* trans_path="mnist/scale1/trans.txt";
+  const char* states_path="mnist/scale1/states.txt";
+  const char* landmarks_path="mnist/scale1/landmarks.txt";
+  const char* influence_path="mnist/scale1/influence.txt";
   vector<vector<string>> raw_trans=read_file(trans_path);
   vector<vector<double>> trans=to_double(raw_trans);
   cout <<"TRANS MATRIX CORRECTNESS " << is_norm(trans) <<endl;
   vector<vector<string>> raw_states=read_file(states_path);
   vector<vector<int>>  states=to_int(raw_states);
-  MarkovChain mc(states,trans);//,homg_states);
+  MarkovChain mc(states,trans);
   vector<int> landmarks=mc.find_landmarks(beta,theta,threshold);
-  cout << "size:"<< landmarks.size() << endl;
   save_landmarks(landmarks_path,mc.get_landmark_indexs(landmarks));
   cout << "landmarks saved" << endl;
   vector<map<int,int>> influence=mc.compute_influence(landmarks,beta); 

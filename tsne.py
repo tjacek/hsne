@@ -45,18 +45,8 @@ def create_embedding(trans):
     P=trans.T +trans
     norm_const=2.0 * float(trans.shape[0])
     P/=norm_const
-    embd=TSNE(n_components=2).fit_transform(P)   
+    embd=TSNE(n_components=2,perplexity=20).fit_transform(P)   
     return embd
-
-#def get_weights(weights_file=None):
-
-#def next_weights(infl_matrix,W=None):
-#    n_landmarks=infl_matrix.shape[0]
-#    if(W is None):
-#        W=np.zeros((n_landmarks,))
-#    W=W*infl_matrix
-#    print(W.shape)
-#    return W
 
 def select_landmarks(dataset,in_file='landmarks.txt',out_file='landmarks'):
     landmarks=utils.read_ints(in_file)	
