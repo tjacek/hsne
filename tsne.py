@@ -26,7 +26,12 @@ def compute_t(landmarks,sparse_pairs,W):
         return row
     T=np.array([norm_helper(t_i) for t_i in T])
     print("norm %d" % check_norm(T))
-    return T
+    W_next=(W.transpose()*infl_matrix).todense()
+    print("W_next"+str(type(W_next)))
+    print(W_next.shape)
+ #   W_next=np.expand_dims(W_next,axis=0)
+ #   print(W_next.shape)
+    return T,W_next
 
 def check_norm(T):
     s=np.sum(T,axis=1)

@@ -24,24 +24,25 @@ def prepare_hsne(graph_path='mnist_d/nn_graph',
 
 def hsne(graph_path='mnist_d/nn_graph',landmark_file="mnist_d/scale1/landmarks.txt",
          influence_file="mnist_d/scale1/influence.txt",t_file="mnist_d/scale1/T.txt",
-         weights_file=None):
+         weights_in=None,weights_out="mnist_d/scale2/W.txt"):
     landmarks=utils.read_ints(landmark_file)
     print("landmarks loaded")
     sparse_pairs=utils.read_pairs(influence_file)
     print("pairs loaded %d" % len(sparse_pairs))
-    if(weights_file is None):
+    if(weights_in is None):
         n_points=len(sparse_pairs)
         W=dok_matrix(np.ones((n_points,1)),dtype=np.float32)
     else:
         W=np.loadtxt(weights_file)
-    T=tsne.compute_t(landmarks,sparse_pairs,W)
-    utils.save_array(T,t_file,prec='%.2e')
+    T,W_next=tsne.compute_t(landmarks,sparse_pairs,W)
     t_embd=time.time()
     embd=tsne.create_embedding(T)
     print("embeding created %d" % (time.time() - t_embd))
     #mnist = fetch_mldata(dataset_name)
     nn_graph=knn.read_nn_graph(graph_path)
     plot.plot_embedding(embd,nn_graph.target,landmarks,title="beta_threshold=1.5")
+    utils.save_array(T,t_file,prec='%.2e')
+    utils.save_array(W_next,weights_out)
 
 def next_iter(out_file="mnist_d/scale2",
               landmark_file="mnist_d/scale1/landmarks.txt",
