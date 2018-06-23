@@ -59,7 +59,7 @@ def save_hsne(T,W_next,scale_path):
     utils.save_array(W_next,weights_out)
 
 def next_iter(in_scale="mnist_d/scale1",out_scale="mnist_d/scale2" ):
-    os.mkdir(out_scale)
+#    os.mkdir(out_scale)
     landmarks,trans=load_iter(in_scale)
 
     trans=markov.to_cum_matrix(trans)   

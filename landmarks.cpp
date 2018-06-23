@@ -233,7 +233,8 @@ vector<string> split(const string &s, char delim) {
   return elems;
 }
 
-bool is_norm(vector<vector<double>> trans){
+int is_norm(vector<vector<double>> trans){
+  int value=0;
   for(int i=0;i<trans.size()-1;i++){
     double prob=0;
     for(int j=0; j<trans[i].size()-1;j++){
@@ -241,22 +242,22 @@ bool is_norm(vector<vector<double>> trans){
       double next=trans[i][j+1];
       prob+= (next - current);
       if(prob>1.0){
-        return false;
+        value++;
       }
     }
     //cout << prob << endl;
   }
-  return true; 
+  return value; 
 }
 
 int main () {
   int beta=100;
   int theta=50;
   float threshold=2.5;
-  const char* trans_path="mnist/scale1/trans.txt";
-  const char* states_path="mnist/scale1/states.txt";
-  const char* landmarks_path="mnist/scale1/landmarks.txt";
-  const char* influence_path="mnist/scale1/influence.txt";
+  const char* trans_path="mnist/scale2/trans.txt";
+  const char* states_path="mnist/scale2/states.txt";
+  const char* landmarks_path="mnist/scale2/landmarks.txt";
+  const char* influence_path="mnist/scale2/influence.txt";
   vector<vector<string>> raw_trans=read_file(trans_path);
   vector<vector<double>> trans=to_double(raw_trans);
   cout <<"TRANS MATRIX CORRECTNESS " << is_norm(trans) <<endl;
