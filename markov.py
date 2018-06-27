@@ -1,6 +1,6 @@
 import numpy as np
 import knn,utils
-from sets import Set
+#from sets import Set
 import random
 
 class EffMarkovChain(object):

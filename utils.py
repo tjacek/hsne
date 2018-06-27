@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import pickle,os,re
-from sets import Set 
+#from sets import Set 
 from scipy.sparse import dok_matrix
 import sklearn.datasets.base
 from sklearn.datasets import fetch_mldata
@@ -65,7 +65,7 @@ def save_object(nn,path):
     file_object.close()
 
 def read_object(path):
-    file_object = open(path,'r')
+    file_object = open(path,'rb')
     obj=pickle.load(file_object)  
     file_object.close()
     return obj

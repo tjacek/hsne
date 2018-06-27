@@ -29,6 +29,6 @@ def plot_embedding(X,cats,landmarks,title=None):
 
 def get_fraction(n_points,max_points=3000):
     if(n_points>max_points):
-        return (n_points/max_points)
+        return int(n_points/max_points)
     else:
         return 1
