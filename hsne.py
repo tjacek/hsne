@@ -38,9 +38,8 @@ def hsne(dataset_name="MNIST original",
     embd=tsne.create_embedding(T)
     print("embeding created %d" % (time.time() - t_embd))
     mnist = fetch_mldata(dataset_name)
-    #nn_graph=knn.read_nn_graph(graph_path)
-    plot.plot_embedding(embd,mnist.target,landmarks,title="beta_threshold=5")
-    save_hsne(T,W_next,scale_path)
+    plot.plot_embedding(embd,mnist.target,landmarks,title="beta_threshold=1.5")
+    save_hsne(T,embd,W_next,scale_path)
 
 def load_hsne(scale_path):
     landmark_file= scale_path+"/landmarks.txt"
@@ -52,11 +51,13 @@ def load_hsne(scale_path):
     print("pairs loaded %d" % len(sparse_pairs))
     return landmarks,sparse_pairs
 
-def save_hsne(T,W_next,scale_path):
+def save_hsne(T,embd,W_next,scale_path):
     t_file=scale_path+"/T.txt"
     weights_out=scale_path+"/W.txt"
     utils.save_object(T,t_file)
     utils.save_array(W_next,weights_out)
+    embd_file=scale_path+"/embd"
+    utils.save_object(embd,embd_file)
 
 def next_iter(in_scale="mnist_d/scale1",out_scale="mnist_d/scale2" ):
 #    os.mkdir(out_scale)
@@ -92,6 +93,6 @@ def get_weights(weights_in,sparse_pairs):
         W=sparse.dok_matrix(W)
     return W
 
-#prepare_hsne(graph_path='mnist/graph',scale_path='mnist/scale1')
-#hsne(scale_path="mnist/scale1",weights_in=None)#"mnist/scale1")
-next_iter(in_scale="mnist/scale1",out_scale="mnist/scale2")
+#prepare_hsne(graph_path='mnist_pca/graph',scale_path='mnist_pca/scale1')
+#hsne(scale_path="mnist_pca/scale1",weights_in=None)#"mnist/scale1")
+next_iter(in_scale="mnist_pca/scale1",out_scale="mnist_pca/scale2")

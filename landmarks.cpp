@@ -253,11 +253,11 @@ int is_norm(vector<vector<double>> trans){
 int main () {
   int beta=100;
   int theta=50;
-  float threshold=2.5;
-  const char* trans_path="mnist/scale2/trans.txt";
-  const char* states_path="mnist/scale2/states.txt";
-  const char* landmarks_path="mnist/scale2/landmarks.txt";
-  const char* influence_path="mnist/scale2/influence.txt";
+  float threshold=1.5;
+  const char* trans_path="mnist_pca/scale2/trans.txt";
+  const char* states_path="mnist_pca/scale2/states.txt";
+  const char* landmarks_path="mnist_pca/scale2/landmarks.txt";
+  const char* influence_path="mnist_pca/scale2/influence.txt";
   vector<vector<string>> raw_trans=read_file(trans_path);
   vector<vector<double>> trans=to_double(raw_trans);
   cout <<"TRANS MATRIX CORRECTNESS " << is_norm(trans) <<endl;

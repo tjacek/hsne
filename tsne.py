@@ -8,15 +8,7 @@ import numpy as np
 import plot
 
 def compute_t(landmarks,sparse_pairs,W):  
-    n_landmarks=len(landmarks)
-    print("Number of landmarks %d" % n_landmarks)
-    t_sparse=time.time()
-    n_states=len(sparse_pairs)
-    infl_matrix=utils.to_sparse_matrix(sparse_pairs,n_states,n_landmarks)
-    print("sparse matrix created %d" % ( time.time()- t_sparse))
-    norm_const=infl_matrix[0].sum()
-    infl_matrix/=norm_const
-    print("Norm const %d" % norm_const)
+    infl_matrix=make_influence_matrix(landmarks,sparse_pairs)
     t_comp=time.time()
     T=markov.get_prob_matrix(infl_matrix,W)
     print("T matrix computed %d" % (time.time() - t_comp))
@@ -32,6 +24,18 @@ def compute_t(landmarks,sparse_pairs,W):
  #   W_next=np.expand_dims(W_next,axis=0)
  #   print(W_next.shape)
     return T,W_next
+
+def make_influence_matrix(landmarks,sparse_pairs):
+    n_landmarks=len(landmarks)
+    print("Number of landmarks %d" % n_landmarks)
+    t_sparse=time.time()
+    n_states=len(sparse_pairs)
+    infl_matrix=utils.to_sparse_matrix(sparse_pairs,n_states,n_landmarks)
+    print("sparse matrix created %d" % ( time.time()- t_sparse))
+    norm_const=infl_matrix[0].sum()
+    infl_matrix/=norm_const
+    print("Norm const %d" % norm_const)
+    return infl_matrix
 
 def check_norm(T):
     s=np.sum(T,axis=1)
@@ -59,13 +63,5 @@ def compute_influence(graph_path,landmark_file):
     print("markov chain built")
     landmarks=utils.read_ints(landmark_file)
     t0=time.time()
-    markov.compute_influence(mc,landmarks,beta=50)
+    markov.compute_influence(mc,landmarks,beta=100)
     print("Time %d" % (time.time() - t0))
-
-#mnist = fetch_mldata("MNIST original")
-#print(type(mnist))
-#prepare_hsne()
-#hsne()
-#next_iter()
-#hsne(dataset_name='MNIST original',landmark_file="mnist/scale2/landmarks.txt",
-#         influence_file="mnist/scale2/influence.txt",t_file="mnist/scale2/T.txt")
